@@ -1,6 +1,6 @@
 The entire contract project is located under src/and mainly includes the following parts:
 
-###Deploy contracts using remix
+### contracts using remix
 
 Ethereum usage: https://remix.ethereum.org/
 Wave field usage: https://www.tronide.io/
