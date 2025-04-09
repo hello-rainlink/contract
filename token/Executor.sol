@@ -44,6 +44,14 @@ contract Executor is Comn {
     // It stores the fee token addresses corresponding to different chains.
     mapping(uint => bytes32) public chainFeeTokenMap;
 
+    event TokenRelationshipSet(
+        uint indexed source_chain_id,
+        bytes32 indexed source_token,
+        uint8 source_token_decimals,
+        address dest_token,
+        uint8 dest_token_type
+    );
+
     /**
      * @dev Sets the contract address for a specified chain. This function can only be called by the administrator.
      * @param source_chain_id The ID of the source chain.
@@ -116,6 +124,14 @@ contract Executor is Comn {
                 dest_token_type
             )
         );
+
+        emit TokenRelationshipSet(
+            source_chain_id,
+            source_token,
+            source_token_decimals,
+            dest_token,
+            dest_token_type
+        );
     }
 
     /**
@@ -139,6 +155,8 @@ contract Executor is Comn {
             ) {
                 crossArr[i] = crossArr[crossArr.length - 1];
                 crossArr.pop();
+
+                emit TokenRelationshipRemoved(source_chain_id, source_token);
                 break;
             }
         }

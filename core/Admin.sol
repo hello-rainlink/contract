@@ -2,9 +2,6 @@
 
 pragma solidity ^0.8.0;
 
-import "@openzeppelin/contracts@5.0.0/utils/Strings.sol";
-import "@openzeppelin/contracts@5.0.0/utils/Address.sol";
-import "@openzeppelin/contracts@5.0.0/utils/math/SafeCast.sol";
 import {IAdmin} from "../comn/IAdmin.sol";
 
 /**
@@ -29,7 +26,7 @@ contract Admin is IAdmin {
      * @dev Throws if called by any account other than the auditor.
      */
     modifier onlyAdmin() {
-        require(address(this) == msg.sender, "Must admin");
+        require(isAdmin(msg.sender), "Must admin");
         _;
     }
 
@@ -56,6 +53,8 @@ contract Admin is IAdmin {
      * @dev change the admin address.
      */
     function setAdmin(address newAdmin) public onlyMaster {
+        require(newAdmin != address(0), "Invalid admin");
+        
         emit AdminChanged(admin, newAdmin);
         admin = newAdmin;
     }
@@ -87,5 +86,4 @@ contract Admin is IAdmin {
     function isAdmin(address addr) public view override returns (bool) {
         return admin == addr;
     }
-
 }

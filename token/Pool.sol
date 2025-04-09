@@ -165,15 +165,21 @@ contract Pool is Comn {
         uint bonus = calBonusFromPool(user, stakeToken);
 
         // If there is a bonus, proceed with the withdrawal.
-        if (bonus > 0) {
+        if (bonus >= amount) {
             emit Types.Log("wd bonus", bonus);
             // Reset the bonus information.
             _resetBonus(stakeToken, amount);
 
             // Decrease the total amount in the pool.
             poolMap[stakeToken].inAmount -= amount;
-            // Transfer the bonus tokens to the user.
-            SafeERC20.safeTransfer(IToken(stakeToken), msg.sender, bonus);
+
+            // If the token is a wrapped token (WTOKEN_ADDRESS), send Ether to the user.
+            if (isWToken(stakeToken)) {
+                Address.sendValue(payable(user), amount);
+            } else {
+                // Transfer the tokens from the contract to the user.
+                SafeERC20.safeTransfer(IToken(stakeToken), user, amount);
+            }
         }
     }
 
@@ -269,18 +275,7 @@ contract Pool is Comn {
      */
     function getLpFee(address token, uint amount) public view returns (uint) {
         uint pool_fee_all = Math.mulDiv(amount, POOL_FEE, 1000000);
-        uint all_cal_amount = poolMap[token].inAmount;
-        require(
-            all_cal_amount > 0,
-            "Total pool amount must be greater than zero"
-        );
-
-        uint ratio = Math.mulDiv(amount, 1000, all_cal_amount);
-        if (ratio < 3) {
-            return pool_fee_all;
-        } else {
-            return Math.mulDiv(amount, ratio, 1000);
-        }
+        return pool_fee_all;
     }
 
     /**
@@ -377,6 +372,9 @@ contract Pool is Comn {
      * @param amount The amount of tokens to be sent.
      */
     function sendTokenFee(address token, uint amount) public {
+        // Check if the pool for the given token exists.
+        require(poolMap[token].token != address(0), "pool not found");
+
         // Transfer the tokens from the user to the contract.
         SafeERC20.safeTransferFrom(
             IToken(token),
@@ -445,7 +443,7 @@ contract Pool is Comn {
         require(amount <= userAllAmount, "not enough user assets");
         userStakeAmountMap[user][token].amount -= amount;
 
-        require(amount <= poolMap[token].amount, "not enough pool assets");
+        require(amount <= poolMap[token].inAmount, "not enough pool assets");
         require(
             amount <= poolMap[token].stakeAmount,
             "not enough pool stakeAmount assets"

@@ -2,6 +2,7 @@
 pragma solidity ^0.8.20;
 
 import {ECDSA} from "@openzeppelin/contracts@5.0.0/utils/cryptography/ECDSA.sol";
+import {Address} from "@openzeppelin/contracts@5.0.0/utils/Address.sol";
 import {Types} from "../comn/Types.sol";
 import {IMessager} from "../comn/IMessager.sol";
 import {IValidator} from "../comn/IValidator.sol";
@@ -10,8 +11,8 @@ import {Comn} from "./Comn.sol";
 
 /**
  * @title Messager
- * @dev This contract inherits from both Comn and IMessager. It is designed to handle messaging - related operations in the context of a cross - chain or decentralized system. 
- * It may be responsible for emitting, consuming, and decoding messages, which are crucial for coordinating actions between different components, chains, or contracts. 
+ * @dev This contract inherits from both Comn and IMessager. It is designed to handle messaging - related operations in the context of a cross - chain or decentralized system.
+ * It may be responsible for emitting, consuming, and decoding messages, which are crucial for coordinating actions between different components, chains, or contracts.
  * The contract serves as a communication hub to ensure the proper flow of information and execution of associated tasks within the overall system.
  */
 contract Messager is Comn, IMessager {
@@ -199,6 +200,11 @@ contract Messager is Comn, IMessager {
         Types.Message memory messageDec,
         bytes[] memory signature
     ) public returns (bool) {
+        address receiver = ComFunUtil.bytes32ToAddress(
+            messageDec.msg_header.receiver
+        );
+        require(msg.sender == receiver, "not match receiver");
+
         (bool rs, ) = _verify_msg(messageDec, signature);
 
         uint from_chain_id = ComFunUtil.combainChain(
@@ -261,5 +267,15 @@ contract Messager is Comn, IMessager {
         );
         emit Msg(rs);
         emit UploadFee(upload_gas_fee);
+    }
+
+    /**
+     * @dev Allows a admin to withdraw the bridge fee.
+     * @param amount The amount to be withdrawn.
+     */
+    function withdrawFee(uint amount) public onlyAdmin {
+        require(amount <= address(this).balance, "not enough balance");
+
+        Address.sendValue(payable(msg.sender), amount);
     }
 }

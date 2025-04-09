@@ -35,4 +35,6 @@ interface IMessager {
         bytes memory message,
         uint128 upload_gas_fee // source p token.
     ) external payable;
+
+    function withdrawFee(uint amount) external;
 }
