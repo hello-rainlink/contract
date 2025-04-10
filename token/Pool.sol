@@ -490,14 +490,21 @@ contract Pool is Comn {
     function _resetBonus(address token, uint amount_) private {
         address user = msg.sender;
         uint amount = userStakeAmountMap[user][token].amount;
-        uint newDebt = (amount * poolMap[token].acc) >> 64;
+        uint acc = poolMap[token].acc;
 
-        // Calculate the total reward the user has earned.
+        // Calculate the updated debt for the user based on the current accumulated reward rate.
+        uint newDebt = (amount * acc) >> 64;
+        // Compute the total reward the user has earned (still in Q64.64 fixed-point format).
         uint totalReward = (amount * poolMap[token].acc) -
             userStakeAmountMap[user][token].debt +
             userStakeAmountMap[user][token].remainReward;
-        require(totalReward >= amount_, "not enough reward");
-        uint newReward = (totalReward - amount_) >> 64;
+
+        // Convert total reward from Q64.64 to integer value (e.g. in wei).
+        uint totalRewardInt = totalReward >> 64;
+        require(totalRewardInt >= amount_, "not enough reward");
+        
+        // Calculate the new remaining reward after the withdrawal.
+        uint newReward = totalRewardInt - amount_;
 
         // Update the user's remaining reward and debt.
         userStakeAmountMap[user][token].remainReward = newReward;

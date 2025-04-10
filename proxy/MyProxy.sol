@@ -3,6 +3,7 @@ pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts@5.0.0/proxy/Proxy.sol";
 import "@openzeppelin/contracts@5.0.0/proxy/ERC1967/ERC1967Utils.sol";
+import {StorageSlot} from "@openzeppelin/contracts@5.0.0/utils/StorageSlot.sol";
 import {BaseComn} from "../BaseComn.sol";
 
 /**
@@ -15,9 +16,11 @@ contract MyProxy is BaseComn, Proxy {
      * @dev Constructor function. Initializes the proxy contract by setting the implementation contract
      * and optionally calling a function on the new implementation with provided data.
      * @param impl The address of the initial implementation contract.
+     * @param _admin set the admin & create2 address.
      * @param data The data to be passed to the new implementation contract during initialization.
      */
-    constructor(address impl, bytes memory data) {
+    constructor(address impl, address _admin, bytes memory data) {
+        StorageSlot.getAddressSlot(_ADMIN_SLOT).value = _admin;
         // Call the upgradeToAndCall function from ERC1967Utils to set the implementation and execute the provided data.
         ERC1967Utils.upgradeToAndCall(impl, data);
     }
