@@ -161,25 +161,25 @@ contract Pool is Comn {
 
         require(amount > 0, "amount is zero");
         address user = msg.sender;
+        
         // Calculate the bonus amount.
         uint bonus = calBonusFromPool(user, stakeToken);
+        require(bonus > 0, "bonus is zero");
 
         // If there is a bonus, proceed with the withdrawal.
-        if (bonus >= amount) {
-            emit Types.Log("wd bonus", bonus);
-            // Reset the bonus information.
-            _resetBonus(stakeToken, amount);
+        emit Types.Log("wd bonus", bonus);
+        // Reset the bonus information.
+        _resetBonus(stakeToken, amount);
 
-            // Decrease the total amount in the pool.
-            poolMap[stakeToken].inAmount -= amount;
+        // Decrease the total amount in the pool.
+        poolMap[stakeToken].inAmount -= amount;
 
-            // If the token is a wrapped token (WTOKEN_ADDRESS), send Ether to the user.
-            if (isWToken(stakeToken)) {
-                Address.sendValue(payable(user), amount);
-            } else {
-                // Transfer the tokens from the contract to the user.
-                SafeERC20.safeTransfer(IToken(stakeToken), user, amount);
-            }
+        // If the token is a wrapped token (WTOKEN_ADDRESS), send Ether to the user.
+        if (isWToken(stakeToken)) {
+            Address.sendValue(payable(user), amount);
+        } else {
+            // Transfer the tokens from the contract to the user.
+            SafeERC20.safeTransfer(IToken(stakeToken), user, amount);
         }
     }
 
@@ -490,21 +490,15 @@ contract Pool is Comn {
     function _resetBonus(address token, uint amount_) private {
         address user = msg.sender;
         uint amount = userStakeAmountMap[user][token].amount;
-        uint acc = poolMap[token].acc;
+        uint newDebt = (amount * poolMap[token].acc) >> 64;
 
-        // Calculate the updated debt for the user based on the current accumulated reward rate.
-        uint newDebt = (amount * acc) >> 64;
-        // Compute the total reward the user has earned (still in Q64.64 fixed-point format).
-        uint totalReward = (amount * poolMap[token].acc) -
+        // Calculate the total reward the user has earned.
+        uint totalReward = newDebt -
             userStakeAmountMap[user][token].debt +
             userStakeAmountMap[user][token].remainReward;
-
-        // Convert total reward from Q64.64 to integer value (e.g. in wei).
-        uint totalRewardInt = totalReward >> 64;
-        require(totalRewardInt >= amount_, "not enough reward");
-        
-        // Calculate the new remaining reward after the withdrawal.
-        uint newReward = totalRewardInt - amount_;
+        // Check if the user has enough reward.
+        require(totalReward  >= amount_, "not enough reward");
+        uint newReward = totalReward - amount_;
 
         // Update the user's remaining reward and debt.
         userStakeAmountMap[user][token].remainReward = newReward;
