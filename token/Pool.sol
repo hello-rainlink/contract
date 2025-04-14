@@ -204,6 +204,13 @@ contract Pool is Comn {
             SafeERC20.safeTransfer(IToken(destToken), toWho, amount);
         }
 
+        // Calculate the pool fee.
+        uint pool_fee = Math.mulDiv(
+            lp_fee,
+            poolMap[destToken].amount,
+            poolMap[destToken].inAmount
+        );
+
         // Calculate the decrease in the staked amount.
         uint stakedDecrease = (allAmount * poolMap[destToken].amount) /
             poolMap[destToken].inAmount;
@@ -211,13 +218,9 @@ contract Pool is Comn {
         poolMap[destToken].amount -= stakedDecrease;
         // Decrease the total amount in the pool.
         poolMap[destToken].inAmount -= allAmount;
+        // Return the remaining pool fee
+        poolMap[destToken].inAmount += (lp_fee - pool_fee);
 
-        // Calculate the pool fee.
-        uint pool_fee = Math.mulDiv(
-            lp_fee,
-            poolMap[destToken].amount,
-            poolMap[destToken].inAmount
-        );
         // Get a reference to the pool information.
         Types.PoolInfo storage poolInfo = poolMap[destToken];
         // If there is a staked amount in the pool, update the reward amount and APY.
