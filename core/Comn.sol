@@ -10,15 +10,16 @@ import {Types} from "../comn/Types.sol";
  */
 abstract contract Comn is BaseComn {
     // xone
-    address constant ValidatorAddr = address(0x0832652cF69DFE916bCD6142759AC7E6813b406c);
+    address constant ValidatorAddr = address(0x697b6397599267Be5a34057901533f85462C1e2f);
 
     // tbsc
-    // address constant ValidatorAddr = 0xd2bA7eBd42a39315Dac3f8bba68d30f622fe467f;
+    // address constant ValidatorAddr = address(0x237aeC76ED2bECC3e5df4f007F6E67CC2EAe68e9);
 
-    // address constant ValidatorAddr = address(0xF973BbcfEA512aC7BB7187a7A5CC9663064323dE);
+    // sepolia
+    // address constant ValidatorAddr = address(0x1F1C9CFF1c78cE6d530b218dF61f25D7849A1791);
 
     // nile
-    // address constant ValidatorAddr = address(0x0bbF3a187226e194CB1536875B0be85Cc8e8Af46); //TB3KWrE82z6hT5z5vaWPJuWGkf8muuSoev
+    // address constant ValidatorAddr = address(0xa85E0F60586EbB70d05cE01D09B5750C04f8e046); //TRKTChDwwjFTi9mmL6iePHV6X2C42YN3TN
 
     // ETH chain
     Types.ChainType constant ChainType = Types.ChainType.ETH;

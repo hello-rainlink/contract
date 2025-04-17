@@ -52,6 +52,11 @@ contract Executor is Comn {
         uint8 dest_token_type
     );
 
+    event TokenRelationshipRemoved(
+        uint indexed source_chain_id,
+        bytes32 indexed source_token
+    );
+
     /**
      * @dev Sets the contract address for a specified chain. This function can only be called by the administrator.
      * @param source_chain_id The ID of the source chain.

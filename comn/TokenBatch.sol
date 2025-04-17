@@ -1,11 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.20;
 
 /**
  * @title Batch function for Token
- * at sepolia 0x97f4Adff5e4C3091b083a7F0450c6BDa230f85cc
- * at bnbtest 0xb64bf9eA000A482c4f3009396f8e87464fA55eBf
  */
 contract TokenBatch {
     // The token metadata
