@@ -13,6 +13,7 @@ contract Admin is IAdmin {
     address public admin; // admin
 
     event AdminChanged(address oldAdmin, address newAdmin);
+    event MasterChanged(address oldMaster, address newMaster);
 
     /**
      * @dev Throws if called by any account other than the master.
@@ -57,6 +58,15 @@ contract Admin is IAdmin {
         
         emit AdminChanged(admin, newAdmin);
         admin = newAdmin;
+    }
+
+    /**
+     * @dev change the master address.
+     */
+    function setMaster(address newMaster) public onlyMaster {
+        require(newMaster != address(0), "Invalid address");
+        emit MasterChanged(master, newMaster);
+        master = newMaster;
     }
 
     /**
