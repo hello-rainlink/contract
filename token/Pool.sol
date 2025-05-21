@@ -51,6 +51,9 @@ contract Pool is Comn {
     // Mapping from token address to the platform fee amount for that token.
     mapping(address => uint) public feeAmountMap;
 
+    // Mapping from token address to the pool fee rate. The value is divided by 1000000 to get the actual rate.
+    mapping(address => uint) public poolFeeMap;
+
     /**
      * @dev Modifier that restricts a function to be called only by the executor.
      * Throws an error if the caller is not the executor.
@@ -84,6 +87,48 @@ contract Pool is Comn {
 
         // Add the token address to the poolArr.
         poolArr.push(token);
+    }
+
+    /**
+     * @dev Removes a pool for a given token.
+     * Only the administrator can call this function.
+     * @param token The address of the token for which the pool is to be removed.
+     */
+    function removePool(address token) public onlyAdmin {
+        // Check if the pool for the given token exists.
+        if (poolMap[token].token == address(0)) {
+            revert("Pool does not exist");
+        }
+
+        // Check if the pool has any staked tokens or locked tokens.
+        if (poolMap[token].inAmount != 0 || poolMap[token].acc != 0) {
+            revert("Cannot remove pool: inAmount or acc is not zero");
+        }
+
+        // Remove the token from the poolArr.
+        for (uint256 i = 0; i < poolArr.length; i++) {
+            if (poolArr[i] == token) {
+                // Copy the last element to the current index.
+                poolArr[i] = poolArr[poolArr.length - 1];
+                // Remove the last element from the array.
+                poolArr.pop();
+                break;
+            }
+        }
+
+        // Delete the pool information from the poolMap.
+        delete poolMap[token];
+    }
+
+    /**
+     * @dev Sets the pool fee for a given token.
+     * Only the administrator can call this function.
+     * @param token The address of the token for which the pool fee is to be set.
+     * @param feeRate The pool fee rate. this value is divided by 1000000 to get the actual rate.
+     */
+    function setPoolFeeRate(address token, uint feeRate) public onlyAdmin {
+        require(feeRate <= 1000000, "fee rate too high");
+        poolFeeMap[token] = feeRate;
     }
 
     /**
@@ -277,7 +322,8 @@ contract Pool is Comn {
      * @return The calculated LP fee.
      */
     function getLpFee(address token, uint amount) public view returns (uint) {
-        uint pool_fee_all = Math.mulDiv(amount, POOL_FEE, 1000000);
+        uint feeRate = poolFeeMap[token];
+        uint pool_fee_all = Math.mulDiv(amount, feeRate, 1000000);
         return pool_fee_all;
     }
 

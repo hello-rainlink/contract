@@ -108,7 +108,6 @@ library Types {
     }
 
     enum ChainType {
-        EDS,
         ETH,
         TRX,
         SOL
